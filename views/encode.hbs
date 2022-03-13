@@ -1,0 +1,34 @@
+Folder: <select id="folder">&nbsp;&nbsp;Name: <input id="customname" style="width: 600px;" type="text" />
+
+</select>
+<div id="uploadcontainer" class="container">
+
+</div>
+<script>
+    var longindex = {{{long}}}
+    var shortindex = {{{short}}}
+    var subtitles = {{{subtitles}}}
+    var probe = {{{probe}}}
+    var sm = new streamManipulator(document.getElementById('uploadcontainer'));
+    showStreams(probe);
+
+    function showStreams(response) {
+        let probe = response.probe;
+        sm.addUpload(probe);
+        //getprogress(response.uploaduuid);
+        if(subtitles.length > 0) {
+            for(let i = 0; i < subtitles.length; i++) {
+                sm.addSubtitle(subtitles[i].probe);
+            }
+        }
+    }
+
+    let letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+    let folder = document.getElementById('folder');
+    for(let i = 0; i < letters.length; i++) {
+        let option = document.createElement('option');
+        option.value = letters[i];
+        option.text = letters[i];
+        folder.add(option);
+    }
+</script>

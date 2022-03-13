@@ -592,13 +592,23 @@ var uploadCard = function(sm, elem) {
         };
         var uploader = document.querySelector('#subtitleform');
         //console.log(uploader);
-        var newDropzone = new Dropzone(uploader, dzoptions);
+        try {
+            var newDropzone = new Dropzone(uploader, dzoptions);
+        } catch(e) {
+            //don't worry about it
+        }
     }
 
     var addHeader = function(header) {
         let headerdiv = document.createElement('div');
         headerdiv.className = 'card-header';
         headerdiv.innerText = header;
+        try {
+            let customname = document.getElementById('customname');
+            customname.value = header;
+        } catch(e) {
+            // don't worry about it
+        }
         new containerAction(headerdiv);
         card.appendChild(headerdiv);
         return headerdiv;

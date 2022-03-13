@@ -1,0 +1,15 @@
+<script>
+    function launchEncoder(path) {
+        //console.log(path.replace(/\\/g, '\\\\'));
+        console.log(path);
+        console.log(encodeURIComponent(path));
+        window.open('/encoder/' + encodeURIComponent(path))
+    }
+</script>
+<table>
+    {{#each torrents}} 
+        <tr>
+            <td><a href='javascript: launchEncoder("{{{this.path}}}")''>{{this.name}}</a></td>
+        </tr>
+    {{/each}}
+</table>

@@ -3,9 +3,11 @@ var router = express.Router();
 const formidable = require('formidable')
 const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const uploads = require('../lib/uploads');
 const ffmpeg_wrapper = require('node-ffmpeg-wrapper');
 const languages = require('../lib/languages');
+var walk = require('walk');
 
 var encodings = {};
 
@@ -118,6 +120,100 @@ router.get('/', function(req, res, next) {
   //console.log(languages.short());
   res.render('index', { title: 'Express', long: JSON.stringify(languages.long()), short: JSON.stringify(languages.short()) });
 });
+
+/* GET home page. */
+router.get('/downloads', function(req, res, next) {
+  //console.log(languages.short());
+  getMedia({path: 'C:\\Users\\lyas\\Downloads', extensions: ['mp4', 'mkv']}, function(err, files) {
+    for(let i = 0; i < files.length; i++) {
+      files[i].path = files[i].path.replace(/\\/g, '\\\\')
+    }
+    console.log(files);
+    res.render('downloads', { torrents: files });
+  });
+});
+
+/* GET home page. */
+router.get('/encoder/:path', function(req, res, next) {
+  //console.log(languages.short());
+  //getMedia({path: 'C:\\Users\\lyas\\Downloads', extensions: ['mp4', 'mkv']}, function(err, files) {
+    console.log(path.dirname(req.params.path));
+    let ffmpeg = new ffmpeg_wrapper({bindir: 'C:\\ffmpeg\\bin'});
+    ffmpeg.probe({in: [req.params.path]}, function(err, output) {
+      if(err) {
+        /*return res.status(500).json({
+          status: "error",
+          message: "ffprobe failed",
+          //uploaduuid: fields.dzuuid,
+          //data: output,
+          error: err
+        });*/
+        console.log(err);
+      } else {
+        //console.log(output);
+        getMedia({path: path.dirname(req.params.path), extensions: ['srt']}, function(err, files) {
+          console.log(files);
+          if(files.length <= 0) {
+            res.render('encode', { subtitles: '[]', probe: JSON.stringify(output[0]), path: req.params.path, long: JSON.stringify(languages.long()), short: JSON.stringify(languages.short()) });
+          } else {
+            let subs = [];
+            for(let i = 0; i < files.length; i++) {
+              subs.push(files[i].path);
+            }
+            ffmpeg.probe({in: subs}, function(err, subtitles) {
+              if(err) {
+                console.log(err);
+              } else {
+                console.log(subs);
+                console.log(output);
+                res.render('encode', { subtitles: JSON.stringify(subtitles), probe: JSON.stringify(output[0]), path: req.params.path, long: JSON.stringify(languages.long()), short: JSON.stringify(languages.short()) });
+              }
+            });
+          }
+        })
+      }
+    });
+  //});
+});
+
+router.get('/torrents', function(req, res, next) {
+  //console.log(languages.short());
+  //res.render('index', { title: 'Express' });
+  getMedia({path: 'C:\\Users\\lyas\\Downloads', extensions: ['mp4', 'mkv']}, function(err, files) {
+    res.json(files);
+  });
+});
+
+var getMedia = function(params, callback) {
+  var walker;
+  var files = [];
+  var options = {
+      followLinks: false,
+      // directories with these keys will be skipped
+      //filters: ['*.mp4', '_Temp'],
+  };
+
+  walker = walk.walk(params.path, options);
+
+  walker.on('file', function (root, fileStats, next) {
+      let splitname = fileStats.name.split('.');
+      //console.log(root);
+      if(params.extensions.indexOf(splitname[splitname.length - 1].toLowerCase()) >= 0) {
+          fileStats.path = root + '\\' + fileStats.name;
+          //console.log(fileStats.path);
+          files.push(fileStats);
+      }
+      next();
+  });
+
+  walker.on('errors', function (root, nodeStatsArray, next) {
+      next();
+  });
+
+  walker.on('end', function () {
+      callback(false, files);
+  });
+}
 
 router.post('/uploadsub', function(req, res, next) {
   let dir = os.tmpdir();

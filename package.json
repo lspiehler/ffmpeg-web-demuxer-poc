@@ -15,6 +15,7 @@
     "http-errors": "~1.6.3",
     "langs": "^2.0.0",
     "morgan": "~1.9.1",
-    "node-ffmpeg-wrapper": ""
+    "node-ffmpeg-wrapper": "",
+    "walk": "^2.3.15"
   }
 }
